@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Search, Key } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Key, User, Mail, Shield } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Layout, PageHeader } from '../components/layout/Layout';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
-import { Modal } from '../components/ui/Modal';
+import { Modal, FormSection } from '../components/ui/Modal';
 import { Badge } from '../components/ui/Badge';
 import { useToast } from '../components/ui/Toast';
 import type { AppUser, Profile } from '../types';
@@ -41,20 +41,13 @@ export function Users() {
   async function handleSave() {
     setSaving(true);
     if (editing) {
-      const { error } = await supabase.from('app_users').update({
-        nombres: form.nombres, telefono: form.telefono, profile_id: form.profile_id,
-      }).eq('id', editing.id);
+      const { error } = await supabase.from('app_users').update({ nombres: form.nombres, telefono: form.telefono, profile_id: form.profile_id }).eq('id', editing.id);
       if (error) showToast(error.message, 'error');
       else { showToast('Usuario actualizado', 'success'); setShowModal(false); fetchAll(); }
     } else {
-      const { data, error } = await supabase.auth.admin.createUser({
-        email: form.email, password: form.password, email_confirm: true,
-      });
+      const { data, error } = await supabase.auth.admin.createUser({ email: form.email, password: form.password, email_confirm: true });
       if (error) { showToast(error.message, 'error'); setSaving(false); return; }
-      await supabase.from('app_users').insert({
-        id: data.user.id, nombres: form.nombres, email: form.email,
-        telefono: form.telefono, profile_id: form.profile_id,
-      });
+      await supabase.from('app_users').insert({ id: data.user.id, nombres: form.nombres, email: form.email, telefono: form.telefono, profile_id: form.profile_id });
       showToast('Usuario creado', 'success');
       setShowModal(false);
       fetchAll();
@@ -87,7 +80,11 @@ export function Users() {
         title="Usuarios"
         subtitle="Gestión de usuarios y permisos"
         actions={
-          <Button size="sm" onClick={() => { setEditing(null); setForm({ nombres: '', email: '', telefono: '', password: '', profile_id: profiles[0]?.id || 1 }); setShowModal(true); }}>
+          <Button size="sm" onClick={() => {
+            setEditing(null);
+            setForm({ nombres: '', email: '', telefono: '', password: '', profile_id: profiles[0]?.id || 1 });
+            setShowModal(true);
+          }}>
             <Plus className="h-4 w-4" /> Nuevo Usuario
           </Button>
         }
@@ -98,7 +95,7 @@ export function Users() {
           <div className="flex flex-wrap gap-3 items-center">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-              <input className="pl-8 pr-3 py-2 text-sm border border-[#e2e8f0] rounded-md focus:outline-none focus:ring-2 focus:ring-[#0D2D6B] w-56" placeholder="Buscar por nombre o email..." value={search} onChange={e => setSearch(e.target.value)} />
+              <input className="pl-8 pr-3 py-2 text-sm border border-[#e2e8f0] rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0D2D6B] focus:bg-white w-56" placeholder="Buscar por nombre o email..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
             <Button variant="outline" size="sm" onClick={() => { setResetEmail(''); setResetSent(false); setShowResetModal(true); }}>
               <Key className="h-4 w-4" /> Recuperar Contraseña
@@ -144,34 +141,72 @@ export function Users() {
         </div>
       </Card>
 
-      <Modal open={showModal} onClose={() => setShowModal(false)} title={editing ? 'Editar Usuario' : 'Nuevo Usuario'}>
-        <div className="flex flex-col gap-4">
-          <Input label="Nombre completo" value={form.nombres} onChange={e => setForm(p => ({ ...p, nombres: e.target.value }))} />
-          {!editing && <Input label="Email" type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />}
-          <Input label="Teléfono" value={form.telefono} onChange={e => setForm(p => ({ ...p, telefono: e.target.value }))} />
-          {!editing && <Input label="Contraseña inicial" type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />}
-          <Select label="Perfil" options={profiles.map(p => ({ value: p.id, label: p.perfil }))} value={form.profile_id} onChange={e => setForm(p => ({ ...p, profile_id: Number(e.target.value) }))} />
-          <div className="flex gap-2 justify-end">
+      {/* Modal usuario */}
+      <Modal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        title={editing ? 'Editar Usuario' : 'Nuevo Usuario'}
+        subtitle={editing ? `Modificando datos de ${editing.nombres}` : 'Complete los datos para crear el acceso'}
+        footer={
+          <>
             <Button variant="ghost" onClick={() => setShowModal(false)}>Cancelar</Button>
-            <Button loading={saving} onClick={handleSave}>Guardar</Button>
+            <Button loading={saving} onClick={handleSave}>
+              {editing ? 'Guardar cambios' : 'Crear usuario'}
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-5">
+          <div className="space-y-3">
+            <FormSection icon={User} label="Datos personales" />
+            <Input label="Nombre completo" value={form.nombres} onChange={e => setForm(p => ({ ...p, nombres: e.target.value }))} placeholder="Nombre y apellido" />
+            <Input label="Teléfono" value={form.telefono} onChange={e => setForm(p => ({ ...p, telefono: e.target.value }))} placeholder="Opcional" />
+          </div>
+
+          {!editing && (
+            <div className="space-y-3">
+              <FormSection icon={Mail} label="Acceso al sistema" />
+              <Input label="Email" type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="correo@ejemplo.com" />
+              <Input label="Contraseña inicial" type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} placeholder="Mínimo 6 caracteres" />
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <FormSection icon={Shield} label="Permisos" />
+            <Select label="Perfil de acceso" options={profiles.map(p => ({ value: p.id, label: p.perfil }))} value={form.profile_id} onChange={e => setForm(p => ({ ...p, profile_id: Number(e.target.value) }))} />
           </div>
         </div>
       </Modal>
 
-      <Modal open={showResetModal} onClose={() => setShowResetModal(false)} title="Recuperar Contraseña">
-        {resetSent ? (
-          <div className="text-center py-4">
-            <p className="text-green-700 bg-green-50 rounded p-3 text-sm">Enlace enviado correctamente a {resetEmail}</p>
-            <Button className="mt-4" onClick={() => setShowResetModal(false)}>Cerrar</Button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-4">
-            <p className="text-sm text-gray-600">Ingresa el email del usuario para enviarle un enlace de recuperación.</p>
-            <Input label="Email" type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)} />
-            <div className="flex gap-2 justify-end">
+      {/* Modal recuperar contraseña */}
+      <Modal
+        open={showResetModal}
+        onClose={() => setShowResetModal(false)}
+        title="Recuperar Contraseña"
+        subtitle="Se enviará un enlace de restablecimiento al correo"
+        footer={
+          !resetSent ? (
+            <>
               <Button variant="ghost" onClick={() => setShowResetModal(false)}>Cancelar</Button>
               <Button loading={saving} onClick={handleReset}>Enviar enlace</Button>
+            </>
+          ) : (
+            <Button onClick={() => setShowResetModal(false)}>Cerrar</Button>
+          )
+        }
+      >
+        {resetSent ? (
+          <div className="py-4 text-center">
+            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Key className="h-6 w-6 text-green-600" />
             </div>
+            <p className="text-green-700 font-medium mb-1">Enlace enviado correctamente</p>
+            <p className="text-sm text-gray-500">Revisa el correo de <strong>{resetEmail}</strong></p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-500">Ingresa el email del usuario para enviarle un enlace de recuperación de contraseña.</p>
+            <Input label="Email del usuario" type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)} placeholder="correo@ejemplo.com" />
           </div>
         )}
       </Modal>

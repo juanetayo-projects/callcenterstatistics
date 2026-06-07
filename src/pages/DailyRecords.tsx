@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Download, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, Download, Search, CalendarDays, Phone, FileText } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Layout, PageHeader } from '../components/layout/Layout';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Modal } from '../components/ui/Modal';
+import { Modal, FormSection } from '../components/ui/Modal';
 import { Select } from '../components/ui/Select';
 import { useToast } from '../components/ui/Toast';
 import { useAuth } from '../context/AuthContext';
@@ -20,7 +20,7 @@ const EMPTY: Omit<DailyCall, 'id' | 'created_at'> = {
   total: 0, no_atendidas: 0, observaciones: '', user_id: null,
 };
 
-export function DailyRecords({ formOnly = false }: { formOnly?: boolean }) {
+export function DailyRecords() {
   const { isAdmin, user } = useAuth();
   const { showToast } = useToast();
   const [records, setRecords] = useState<DailyCall[]>([]);
@@ -83,19 +83,8 @@ export function DailyRecords({ formOnly = false }: { formOnly?: boolean }) {
   );
 
   const years = getYearOptions();
-
-  if (formOnly) {
-    return (
-      <Layout>
-        <PageHeader title="Registro Diario" subtitle="Ingresar datos de llamadas del día" />
-        <Card>
-          <CardContent>
-            <FormFields form={form} setForm={setForm} saving={saving} onSave={handleSave} onCancel={() => setForm({ ...EMPTY })} />
-          </CardContent>
-        </Card>
-      </Layout>
-    );
-  }
+  const f = (field: string, value: string) =>
+    setForm((p: any) => ({ ...p, [field]: field === 'fecha' || field === 'observaciones' ? value : Number(value) || 0 }));
 
   return (
     <Layout>
@@ -108,7 +97,7 @@ export function DailyRecords({ formOnly = false }: { formOnly?: boolean }) {
               <Download className="h-4 w-4" /> Exportar
             </Button>
             <Button size="sm" onClick={openCreate}>
-              <Plus className="h-4 w-4" /> Nuevo
+              <Plus className="h-4 w-4" /> Nuevo registro
             </Button>
           </div>
         }
@@ -121,30 +110,16 @@ export function DailyRecords({ formOnly = false }: { formOnly?: boolean }) {
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
               <input
-                className="pl-8 pr-3 py-2 text-sm border border-[#e2e8f0] rounded-md focus:outline-none focus:ring-2 focus:ring-[#0D2D6B] w-48"
-                placeholder="Buscar..."
+                className="pl-8 pr-3 py-2 text-sm border border-[#e2e8f0] rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0D2D6B] focus:bg-white w-48"
+                placeholder="Buscar por fecha..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
             </div>
-            <Select
-              options={years.map(y => ({ value: y, label: String(y) }))}
-              value={filterYear}
-              onChange={e => setFilterYear(e.target.value)}
-              placeholder="Año"
-              className="w-28"
-            />
-            <Select
-              options={MESES.map((m, i) => ({ value: i + 1, label: m }))}
-              value={filterMonth}
-              onChange={e => setFilterMonth(e.target.value)}
-              placeholder="Mes"
-              className="w-28"
-            />
+            <Select options={years.map(y => ({ value: y, label: String(y) }))} value={filterYear} onChange={e => setFilterYear(e.target.value)} placeholder="Año" className="w-28" />
+            <Select options={MESES.map((m, i) => ({ value: i + 1, label: m }))} value={filterMonth} onChange={e => setFilterMonth(e.target.value)} placeholder="Mes" className="w-28" />
             {(filterYear || filterMonth || search) && (
-              <Button variant="ghost" size="sm" onClick={() => { setFilterYear(''); setFilterMonth(''); setSearch(''); }}>
-                Limpiar
-              </Button>
+              <Button variant="ghost" size="sm" onClick={() => { setFilterYear(''); setFilterMonth(''); setSearch(''); }}>Limpiar</Button>
             )}
             <span className="text-sm text-gray-500 ml-auto">{filtered.length} registros</span>
           </div>
@@ -180,11 +155,11 @@ export function DailyRecords({ formOnly = false }: { formOnly?: boolean }) {
                   <td className="px-4 py-2 text-gray-500 max-w-[120px] truncate" title={r.observaciones || ''}>{r.observaciones}</td>
                   <td className="px-4 py-2">
                     <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(r)} className="p-1 text-[#0D2D6B] hover:bg-blue-50 rounded">
+                      <button onClick={() => openEdit(r)} className="p-1 text-[#0D2D6B] hover:bg-blue-50 rounded" title="Editar">
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
                       {isAdmin && (
-                        <button onClick={() => handleDelete(r.id)} className="p-1 text-red-500 hover:bg-red-50 rounded">
+                        <button onClick={() => handleDelete(r.id)} className="p-1 text-red-500 hover:bg-red-50 rounded" title="Eliminar">
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       )}
@@ -197,38 +172,54 @@ export function DailyRecords({ formOnly = false }: { formOnly?: boolean }) {
         </div>
       </Card>
 
-      <Modal open={showModal} onClose={() => setShowModal(false)} title={editing ? 'Editar Registro Diario' : 'Nuevo Registro Diario'}>
-        <FormFields form={form} setForm={setForm} saving={saving} onSave={handleSave} onCancel={() => setShowModal(false)} />
+      <Modal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        title={editing ? 'Editar Registro Diario' : 'Nuevo Registro Diario'}
+        subtitle={editing ? `Modificando datos del ${editing.fecha}` : 'Complete los campos para registrar las llamadas del día'}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setShowModal(false)}>Cancelar</Button>
+            <Button loading={saving} onClick={handleSave}>
+              {editing ? 'Guardar cambios' : 'Crear registro'}
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-5">
+          {/* Sección: Fecha */}
+          <div className="space-y-3">
+            <FormSection icon={CalendarDays} label="Fecha del registro" />
+            <Input label="Fecha" type="date" value={form.fecha} onChange={e => f('fecha', e.target.value)} />
+          </div>
+
+          {/* Sección: Llamadas atendidas */}
+          <div className="space-y-3">
+            <FormSection icon={Phone} label="Llamadas atendidas" />
+            <div className="grid grid-cols-2 gap-3">
+              <Input label="Atendidas" type="number" min={0} value={form.atendidas} onChange={e => f('atendidas', e.target.value)} />
+              <Input label="Transferidas" type="number" min={0} value={form.transferidas} onChange={e => f('transferidas', e.target.value)} />
+            </div>
+          </div>
+
+          {/* Sección: Llamadas no atendidas */}
+          <div className="space-y-3">
+            <FormSection icon={Phone} label="Llamadas no atendidas" />
+            <div className="grid grid-cols-2 gap-3">
+              <Input label="Expiradas" type="number" min={0} value={form.expiradas} onChange={e => f('expiradas', e.target.value)} />
+              <Input label="Abandonadas" type="number" min={0} value={form.abandonadas} onChange={e => f('abandonadas', e.target.value)} />
+              <Input label="Ab. Durante Anuncio" type="number" min={0} value={form.ab_durante_anuncio} onChange={e => f('ab_durante_anuncio', e.target.value)} />
+              <Input label="Transf. No Atendidas" type="number" min={0} value={form.transf_no_atendidas} onChange={e => f('transf_no_atendidas', e.target.value)} />
+            </div>
+          </div>
+
+          {/* Sección: Observaciones */}
+          <div className="space-y-3">
+            <FormSection icon={FileText} label="Observaciones" />
+            <Input label="Observaciones" value={form.observaciones || ''} onChange={e => f('observaciones', e.target.value)} placeholder="Notas adicionales del día (opcional)" />
+          </div>
+        </div>
       </Modal>
     </Layout>
-  );
-}
-
-function FormFields({ form, setForm, saving, onSave, onCancel }: {
-  form: any; setForm: any; saving: boolean; onSave: () => void; onCancel: () => void;
-}) {
-  const f = (field: string, value: string) => setForm((p: any) => ({ ...p, [field]: field === 'fecha' || field === 'observaciones' ? value : Number(value) || 0 }));
-  const numFields: { key: string; label: string }[] = [
-    { key: 'atendidas', label: 'Atendidas' },
-    { key: 'expiradas', label: 'Expiradas' },
-    { key: 'abandonadas', label: 'Abandonadas' },
-    { key: 'ab_durante_anuncio', label: 'Ab. Durante Anuncio' },
-    { key: 'transferidas', label: 'Transferidas' },
-    { key: 'transf_no_atendidas', label: 'Transf. No Atendidas' },
-  ];
-  return (
-    <div className="flex flex-col gap-4">
-      <Input label="Fecha" type="date" value={form.fecha} onChange={e => f('fecha', e.target.value)} />
-      <div className="grid grid-cols-2 gap-3">
-        {numFields.map(({ key, label }) => (
-          <Input key={key} label={label} type="number" min={0} value={form[key]} onChange={e => f(key, e.target.value)} />
-        ))}
-      </div>
-      <Input label="Observaciones" value={form.observaciones || ''} onChange={e => f('observaciones', e.target.value)} placeholder="Opcional..." />
-      <div className="flex gap-2 justify-end mt-2">
-        <Button variant="ghost" onClick={onCancel}>Cancelar</Button>
-        <Button loading={saving} onClick={onSave}>Guardar</Button>
-      </div>
-    </div>
   );
 }

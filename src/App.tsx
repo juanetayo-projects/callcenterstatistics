@@ -32,8 +32,8 @@ function AppRoutes() {
     <Routes>
       <Route path={`${BASE}/login`} element={session ? <Navigate to={`${BASE}/`} replace /> : <Login />} />
       <Route path={`${BASE}/`} element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path={`${BASE}/registro/diario`} element={<ProtectedRoute><DailyRecords formOnly /></ProtectedRoute>} />
-      <Route path={`${BASE}/registro/mensual`} element={<ProtectedRoute><MonthlyRecords formOnly /></ProtectedRoute>} />
+      <Route path={`${BASE}/registro/diario`} element={<ProtectedRoute><DailyRecords /></ProtectedRoute>} />
+      <Route path={`${BASE}/registro/mensual`} element={<ProtectedRoute><MonthlyRecords /></ProtectedRoute>} />
       <Route path={`${BASE}/datos/diario`} element={<ProtectedRoute><DailyRecords /></ProtectedRoute>} />
       <Route path={`${BASE}/datos/mensual`} element={<ProtectedRoute><MonthlyRecords /></ProtectedRoute>} />
       <Route path={`${BASE}/campanias`} element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />

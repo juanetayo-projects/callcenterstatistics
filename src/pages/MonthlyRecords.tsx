@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Download, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, Download, Search, CalendarDays, BarChart2, FileText } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Layout, PageHeader } from '../components/layout/Layout';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Modal } from '../components/ui/Modal';
+import { Modal, FormSection } from '../components/ui/Modal';
 import { Select } from '../components/ui/Select';
 import { useToast } from '../components/ui/Toast';
 import { useAuth } from '../context/AuthContext';
@@ -21,7 +21,7 @@ const EMPTY = {
   nivel_atencion: 0, observaciones: '', user_id: null as string | null,
 };
 
-export function MonthlyRecords({ formOnly = false }: { formOnly?: boolean }) {
+export function MonthlyRecords() {
   const { isAdmin, user } = useAuth();
   const { showToast } = useToast();
   const [records, setRecords] = useState<MonthlyCall[]>([]);
@@ -46,11 +46,7 @@ export function MonthlyRecords({ formOnly = false }: { formOnly?: boolean }) {
     setLoading(false);
   }
 
-  function openCreate() {
-    setEditing(null);
-    setForm({ ...EMPTY, user_id: user?.id || null });
-    setShowModal(true);
-  }
+  function openCreate() { setEditing(null); setForm({ ...EMPTY, user_id: user?.id || null }); setShowModal(true); }
 
   function openEdit(r: MonthlyCall) {
     setEditing(r);
@@ -60,12 +56,7 @@ export function MonthlyRecords({ formOnly = false }: { formOnly?: boolean }) {
 
   async function handleSave() {
     setSaving(true);
-    const payload = {
-      ...form,
-      mes: MESES[form.mes_numero - 1],
-      pct_atendidas: form.tot_llamadas > 0 ? (form.atendidas / form.tot_llamadas) * 100 : 0,
-      pct_no_atendidas: form.tot_llamadas > 0 ? (form.no_atendidas / form.tot_llamadas) * 100 : 0,
-    };
+    const payload = { ...form, mes: MESES[form.mes_numero - 1], pct_atendidas: form.tot_llamadas > 0 ? (form.atendidas / form.tot_llamadas) * 100 : 0, pct_no_atendidas: form.tot_llamadas > 0 ? (form.no_atendidas / form.tot_llamadas) * 100 : 0 };
     const { error } = editing
       ? await supabase.from('monthly_calls').update(payload).eq('id', editing.id)
       : await supabase.from('monthly_calls').insert(payload);
@@ -83,42 +74,7 @@ export function MonthlyRecords({ formOnly = false }: { formOnly?: boolean }) {
 
   const filtered = records.filter(r => !search || r.mes.includes(search.toUpperCase()) || String(r.anio).includes(search));
   const years = getYearOptions();
-
-  const NumInput = ({ k, label }: { k: string; label: string }) => (
-    <Input label={label} type="number" min={0} value={(form as any)[k]} onChange={e => setForm(p => ({ ...p, [k]: Number(e.target.value) || 0 }))} />
-  );
-
-  const modalContent = (
-    <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-3">
-        <Select label="Año" options={years.map(y => ({ value: y, label: String(y) }))} value={form.anio} onChange={e => setForm(p => ({ ...p, anio: Number(e.target.value) }))} />
-        <Select label="Mes" options={MESES.map((m, i) => ({ value: i + 1, label: m }))} value={form.mes_numero} onChange={e => setForm(p => ({ ...p, mes_numero: Number(e.target.value), mes: MESES[Number(e.target.value) - 1] }))} />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <NumInput k="tot_llamadas" label="Total Llamadas" />
-        <NumInput k="entrantes" label="Entrantes" />
-        <NumInput k="atendidas" label="Atendidas" />
-        <NumInput k="no_atendidas" label="No Atendidas" />
-        <NumInput k="salientes" label="Salientes" />
-        <NumInput k="validas" label="Válidas" />
-        <NumInput k="nivel_atencion" label="Nivel Atención (%)" />
-      </div>
-      <Input label="Observaciones" value={form.observaciones || ''} onChange={e => setForm(p => ({ ...p, observaciones: e.target.value }))} />
-      <div className="flex gap-2 justify-end">
-        <Button variant="ghost" onClick={() => setShowModal(false)}>Cancelar</Button>
-        <Button loading={saving} onClick={handleSave}>Guardar</Button>
-      </div>
-    </div>
-  );
-
-  if (formOnly) {
-    return (
-      <Layout>
-        <PageHeader title="Registro Mensual" subtitle="Ingresar resumen mensual de llamadas" />
-        <Card><CardContent>{modalContent}</CardContent></Card>
-      </Layout>
-    );
-  }
+  const num = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(p => ({ ...p, [k]: Number(e.target.value) || 0 }));
 
   return (
     <Layout>
@@ -131,7 +87,7 @@ export function MonthlyRecords({ formOnly = false }: { formOnly?: boolean }) {
               <Download className="h-4 w-4" /> Exportar
             </Button>
             <Button size="sm" onClick={openCreate}>
-              <Plus className="h-4 w-4" /> Nuevo
+              <Plus className="h-4 w-4" /> Nuevo registro
             </Button>
           </div>
         }
@@ -142,7 +98,7 @@ export function MonthlyRecords({ formOnly = false }: { formOnly?: boolean }) {
           <div className="flex flex-wrap gap-3 items-center">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-              <input className="pl-8 pr-3 py-2 text-sm border border-[#e2e8f0] rounded-md focus:outline-none focus:ring-2 focus:ring-[#0D2D6B] w-40" placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} />
+              <input className="pl-8 pr-3 py-2 text-sm border border-[#e2e8f0] rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0D2D6B] focus:bg-white w-40" placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
             <Select options={years.map(y => ({ value: y, label: String(y) }))} value={filterYear} onChange={e => setFilterYear(e.target.value)} placeholder="Año" className="w-28" />
             <Select options={MESES.map((m, i) => ({ value: i + 1, label: m }))} value={filterMonth} onChange={e => setFilterMonth(e.target.value)} placeholder="Mes" className="w-28" />
@@ -163,39 +119,87 @@ export function MonthlyRecords({ formOnly = false }: { formOnly?: boolean }) {
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr><td colSpan={13} className="px-4 py-8 text-center text-gray-400">Cargando...</td></tr>
-              ) : filtered.length === 0 ? (
-                <tr><td colSpan={13} className="px-4 py-8 text-center text-gray-400">Sin registros</td></tr>
-              ) : filtered.map((r, i) => (
-                <tr key={r.id} className={i % 2 === 0 ? 'bg-white' : 'bg-[#f0f4f8]'}>
-                  <td className="px-3 py-2 font-medium">{r.anio}</td>
-                  <td className="px-3 py-2 font-medium">{r.mes}</td>
-                  <td className="px-3 py-2">{formatNumber(r.tot_llamadas)}</td>
-                  <td className="px-3 py-2">{formatNumber(r.entrantes)}</td>
-                  <td className="px-3 py-2 text-[#16a34a] font-semibold">{formatNumber(r.atendidas)}</td>
-                  <td className="px-3 py-2">{formatPercent(r.pct_atendidas)}</td>
-                  <td className="px-3 py-2 text-[#dc2626]">{formatNumber(r.no_atendidas)}</td>
-                  <td className="px-3 py-2">{formatPercent(r.pct_no_atendidas)}</td>
-                  <td className="px-3 py-2">{formatNumber(r.salientes)}</td>
-                  <td className="px-3 py-2">{formatNumber(r.validas)}</td>
-                  <td className="px-3 py-2">{formatPercent(r.nivel_atencion)}</td>
-                  <td className="px-3 py-2 text-gray-500 max-w-[100px] truncate">{r.observaciones}</td>
-                  <td className="px-3 py-2">
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(r)} className="p-1 text-[#0D2D6B] hover:bg-blue-50 rounded"><Pencil className="h-3.5 w-3.5" /></button>
-                      {isAdmin && <button onClick={() => handleDelete(r.id)} className="p-1 text-red-500 hover:bg-red-50 rounded"><Trash2 className="h-3.5 w-3.5" /></button>}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {loading ? <tr><td colSpan={13} className="px-4 py-8 text-center text-gray-400">Cargando...</td></tr>
+                : filtered.length === 0 ? <tr><td colSpan={13} className="px-4 py-8 text-center text-gray-400">Sin registros</td></tr>
+                : filtered.map((r, i) => (
+                  <tr key={r.id} className={i % 2 === 0 ? 'bg-white' : 'bg-[#f0f4f8]'}>
+                    <td className="px-3 py-2 font-medium">{r.anio}</td>
+                    <td className="px-3 py-2 font-medium">{r.mes}</td>
+                    <td className="px-3 py-2">{formatNumber(r.tot_llamadas)}</td>
+                    <td className="px-3 py-2">{formatNumber(r.entrantes)}</td>
+                    <td className="px-3 py-2 text-[#16a34a] font-semibold">{formatNumber(r.atendidas)}</td>
+                    <td className="px-3 py-2">{formatPercent(r.pct_atendidas)}</td>
+                    <td className="px-3 py-2 text-[#dc2626]">{formatNumber(r.no_atendidas)}</td>
+                    <td className="px-3 py-2">{formatPercent(r.pct_no_atendidas)}</td>
+                    <td className="px-3 py-2">{formatNumber(r.salientes)}</td>
+                    <td className="px-3 py-2">{formatNumber(r.validas)}</td>
+                    <td className="px-3 py-2">{formatPercent(r.nivel_atencion)}</td>
+                    <td className="px-3 py-2 text-gray-500 max-w-[100px] truncate">{r.observaciones}</td>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => openEdit(r)} className="p-1 text-[#0D2D6B] hover:bg-blue-50 rounded"><Pencil className="h-3.5 w-3.5" /></button>
+                        {isAdmin && <button onClick={() => handleDelete(r.id)} className="p-1 text-red-500 hover:bg-red-50 rounded"><Trash2 className="h-3.5 w-3.5" /></button>}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
       </Card>
 
-      <Modal open={showModal} onClose={() => setShowModal(false)} title={editing ? 'Editar Registro Mensual' : 'Nuevo Registro Mensual'} size="lg">
-        {modalContent}
+      <Modal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        title={editing ? 'Editar Registro Mensual' : 'Nuevo Registro Mensual'}
+        subtitle="Resumen de llamadas del mes"
+        size="lg"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setShowModal(false)}>Cancelar</Button>
+            <Button loading={saving} onClick={handleSave}>
+              {editing ? 'Guardar cambios' : 'Crear registro'}
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-5">
+          {/* Período */}
+          <div className="space-y-3">
+            <FormSection icon={CalendarDays} label="Período" />
+            <div className="grid grid-cols-2 gap-3">
+              <Select label="Año" options={years.map(y => ({ value: y, label: String(y) }))} value={form.anio} onChange={e => setForm(p => ({ ...p, anio: Number(e.target.value) }))} />
+              <Select label="Mes" options={MESES.map((m, i) => ({ value: i + 1, label: m }))} value={form.mes_numero} onChange={e => setForm(p => ({ ...p, mes_numero: Number(e.target.value), mes: MESES[Number(e.target.value) - 1] }))} />
+            </div>
+          </div>
+
+          {/* Llamadas */}
+          <div className="space-y-3">
+            <FormSection icon={BarChart2} label="Volumen de llamadas" />
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="Total Llamadas" type="number" min={0} value={form.tot_llamadas} onChange={num('tot_llamadas')} />
+              <Input label="Entrantes" type="number" min={0} value={form.entrantes} onChange={num('entrantes')} />
+              <Input label="Salientes" type="number" min={0} value={form.salientes} onChange={num('salientes')} />
+              <Input label="Atendidas" type="number" min={0} value={form.atendidas} onChange={num('atendidas')} />
+              <Input label="No Atendidas" type="number" min={0} value={form.no_atendidas} onChange={num('no_atendidas')} />
+              <Input label="Válidas" type="number" min={0} value={form.validas} onChange={num('validas')} />
+            </div>
+          </div>
+
+          {/* Métricas */}
+          <div className="space-y-3">
+            <FormSection icon={BarChart2} label="Nivel de atención" />
+            <div className="grid grid-cols-1 gap-3">
+              <Input label="Nivel de Atención (%)" type="number" min={0} max={100} value={form.nivel_atencion} onChange={num('nivel_atencion')} hint="Porcentaje de llamadas atendidas dentro del tiempo establecido" />
+            </div>
+          </div>
+
+          {/* Observaciones */}
+          <div className="space-y-3">
+            <FormSection icon={FileText} label="Observaciones" />
+            <Input label="Observaciones" value={form.observaciones || ''} onChange={e => setForm(p => ({ ...p, observaciones: e.target.value }))} placeholder="Notas del mes (opcional)" />
+          </div>
+        </div>
       </Modal>
     </Layout>
   );
