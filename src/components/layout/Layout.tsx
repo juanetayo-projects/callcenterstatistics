@@ -185,7 +185,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </header>
 
       {/* Page content */}
-      <main className="flex-1 p-5 max-w-screen-2xl mx-auto w-full">
+      <main className="flex-1 px-8 py-6 max-w-screen-2xl mx-auto w-full">
         {children}
       </main>
     </div>
@@ -196,12 +196,12 @@ export function PageHeader({ title, subtitle, actions }: {
   title: string; subtitle?: string; actions?: ReactNode;
 }) {
   return (
-    <div className="flex items-start justify-between mb-5">
+    <div className="flex items-center justify-between mb-6 pb-5 border-b border-[#e2e8f0]">
       <div>
-        <h1 className="text-xl font-bold text-[#0D2D6B]">{title}</h1>
-        {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
+        <h1 className="text-2xl font-bold text-[#0D2D6B] tracking-tight">{title}</h1>
+        {subtitle && <p className="text-sm text-gray-400 mt-1">{subtitle}</p>}
       </div>
-      {actions && <div className="flex items-center gap-2 ml-4">{actions}</div>}
+      {actions && <div className="flex items-center gap-2 ml-4 shrink-0">{actions}</div>}
     </div>
   );
 }

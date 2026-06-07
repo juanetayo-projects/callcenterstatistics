@@ -18,10 +18,11 @@
 }
 
 body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background-color: #f0f4f8;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background-color: #eef2f7;
   color: #1e293b;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root { width: 100%; min-height: 100vh; }
@@ -33,10 +34,10 @@ body {
 
 /* Card shadow utility */
 .card-shadow {
-  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(13,45,107,.08);
+  box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 16px rgba(13,45,107,.07);
 }
 .card-shadow-md {
-  box-shadow: 0 2px 8px rgba(0,0,0,.08), 0 8px 24px rgba(13,45,107,.10);
+  box-shadow: 0 2px 8px rgba(0,0,0,.06), 0 8px 32px rgba(13,45,107,.10);
 }
 
 /* Tooltip */

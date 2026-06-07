@@ -3,28 +3,52 @@ import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
-import { Phone, PhoneIncoming, PhoneOff, TrendingUp, Clock } from 'lucide-react';
+import { Phone, PhoneIncoming, PhoneOff, TrendingUp, RefreshCw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { Card, CardContent, CardHeader, CardTitle, KPICard } from '../components/ui/Card';
-import { Select } from '../components/ui/Select';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Layout, PageHeader } from '../components/layout/Layout';
 import { formatNumber, formatPercent, getYearOptions } from '../lib/utils';
-import type { DailyCall, MonthlyCall, CampaignRecord } from '../types';
+import type { MonthlyCall, DailyCall, CampaignRecord } from '../types';
 
-const COLORS = ['#0D2D6B','#16468E','#2563eb','#7c3aed','#dc2626','#d97706','#16a34a','#0891b2','#be185d','#7f8c8d','#0f766e','#c2410c','#4338ca'];
+const COLORS = ['#0D2D6B','#16468E','#2563eb','#7c3aed','#dc2626','#d97706','#16a34a','#0891b2','#be185d','#0f766e','#c2410c','#4338ca'];
 
 export function Dashboard() {
-  const years = getYearOptions();
-  const [year, setYear] = useState(new Date().getFullYear());
+  const allYears = getYearOptions();
+  const [year, setYear] = useState<number | null>(null);
+  const [availYears, setAvailYears] = useState<number[]>([]);
   const [monthly, setMonthly] = useState<MonthlyCall[]>([]);
   const [daily, setDaily] = useState<DailyCall[]>([]);
   const [campaigns, setCampaigns] = useState<CampaignRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [updated, setUpdated] = useState('');
 
-  useEffect(() => { fetchData(); }, [year]);
+  // Al montar: detectar el año con datos más reciente
+  useEffect(() => {
+    async function detectYear() {
+      const { data } = await supabase
+        .from('monthly_calls')
+        .select('anio')
+        .order('anio', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const best = data?.anio ?? new Date().getFullYear();
+      setYear(best);
+
+      // años disponibles
+      const { data: ys } = await supabase
+        .from('monthly_calls')
+        .select('anio')
+        .order('anio', { ascending: false });
+      const unique = [...new Set((ys ?? []).map((r: any) => r.anio as number))];
+      setAvailYears(unique.length > 0 ? unique : allYears);
+    }
+    detectYear();
+  }, []);
+
+  useEffect(() => { if (year !== null) fetchData(); }, [year]);
 
   async function fetchData() {
+    if (year === null) return;
     setLoading(true);
     const [mRes, dRes, cRes] = await Promise.all([
       supabase.from('monthly_calls').select('*').eq('anio', year).order('mes_numero'),
@@ -40,18 +64,19 @@ export function Dashboard() {
 
   const totals = monthly.reduce(
     (acc, m) => ({
-      llamadas: acc.llamadas + (m.tot_llamadas || 0),
-      atendidas: acc.atendidas + (m.atendidas || 0),
-      noAtendidas: acc.noAtendidas + (m.no_atendidas || 0),
-      salientes: acc.salientes + (m.salientes || 0),
+      llamadas:    acc.llamadas    + (m.tot_llamadas  || 0),
+      atendidas:   acc.atendidas   + (m.atendidas     || 0),
+      noAtendidas: acc.noAtendidas + (m.no_atendidas  || 0),
+      salientes:   acc.salientes   + (m.salientes     || 0),
     }),
     { llamadas: 0, atendidas: 0, noAtendidas: 0, salientes: 0 }
   );
   const pctAtendidas = totals.llamadas > 0 ? (totals.atendidas / totals.llamadas) * 100 : 0;
+  const pctNoAtendidas = totals.llamadas > 0 ? (totals.noAtendidas / totals.llamadas) * 100 : 0;
 
   const campPieData = Object.values(
     campaigns.reduce((acc, c) => {
-      const name = c.campaign?.nombre || 'Desconocida';
+      const name = (c.campaign?.nombre || 'Desconocida').replace('CAC_SB_', '').replace(/_/g, ' ');
       if (!acc[name]) acc[name] = { name, value: 0 };
       acc[name].value += c.total_llamadas || 0;
       return acc;
@@ -68,27 +93,41 @@ export function Dashboard() {
     mes: m.mes,
     Atendidas: m.atendidas,
     'No Atendidas': m.no_atendidas,
-    'Salientes': m.salientes,
   }));
+
+  const noData = !loading && monthly.length === 0;
+
+  const ttStyle = {
+    borderRadius: '10px', border: 'none',
+    boxShadow: '0 4px 24px rgba(13,45,107,0.14)', fontSize: 12,
+  };
 
   return (
     <Layout>
       <PageHeader
-        title="Dashboard General"
+        title="Dashboard"
         subtitle="Resumen ejecutivo de indicadores del Call Center"
         actions={
           <div className="flex items-center gap-3">
             {updated && (
-              <span className="text-xs text-gray-400 flex items-center gap-1">
-                <Clock className="h-3 w-3" /> Actualizado: {updated}
+              <span className="text-xs text-gray-400">
+                Actualizado: {updated}
               </span>
             )}
-            <Select
-              options={years.map(y => ({ value: y, label: String(y) }))}
-              value={year}
+            <select
+              value={year ?? ''}
               onChange={e => setYear(Number(e.target.value))}
-              className="w-28"
-            />
+              className="text-sm border border-[#e2e8f0] rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#0D2D6B] font-medium text-[#0D2D6B]"
+            >
+              {(availYears.length > 0 ? availYears : allYears).map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+            <button onClick={fetchData}
+              className="p-2 rounded-lg border border-[#e2e8f0] bg-white text-gray-400 hover:text-[#0D2D6B] hover:border-[#0D2D6B] transition-colors"
+              title="Recargar">
+              <RefreshCw className="h-4 w-4" />
+            </button>
           </div>
         }
       />
@@ -100,39 +139,69 @@ export function Dashboard() {
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
             </svg>
-            <p className="text-sm text-gray-400">Cargando datos...</p>
+            <p className="text-sm text-gray-400">Cargando datos {year}...</p>
           </div>
         </div>
+      ) : noData ? (
+        <div className="flex flex-col items-center justify-center h-64 bg-white rounded-2xl border border-[#e2e8f0]">
+          <Phone className="h-12 w-12 text-gray-200 mb-3" />
+          <p className="text-gray-500 font-semibold">Sin datos para el año {year}</p>
+          <p className="text-sm text-gray-400 mt-1">Seleccione otro año en el filtro</p>
+        </div>
       ) : (
-        <div className="flex flex-col gap-5">
-          {/* KPIs */}
+        <div className="flex flex-col gap-6">
+
+          {/* ── KPI Cards ── */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <KPICard title="Total Llamadas" value={formatNumber(totals.llamadas)} icon={Phone}
-              color="#0D2D6B" borderColor="#0D2D6B" subtitle={`Año ${year}`}
-              tip="Total de llamadas registradas en el período" />
-            <KPICard title="Atendidas" value={formatNumber(totals.atendidas)} icon={PhoneIncoming}
-              color="#16a34a" borderColor="#16a34a" tip="Llamadas efectivamente atendidas" />
-            <KPICard title="No Atendidas" value={formatNumber(totals.noAtendidas)} icon={PhoneOff}
-              color="#dc2626" borderColor="#dc2626" tip="Llamadas abandonadas, expiradas o no atendidas" />
-            <KPICard title="% Atención" value={formatPercent(pctAtendidas)} icon={TrendingUp}
-              color="#16468E" borderColor="#16468E" tip="Porcentaje de llamadas atendidas sobre el total" />
+            <KpiCard
+              label="Total Llamadas"
+              value={formatNumber(totals.llamadas)}
+              sub={`Año ${year}`}
+              icon={Phone}
+              accent="#0D2D6B"
+              pct={100}
+            />
+            <KpiCard
+              label="Atendidas"
+              value={formatNumber(totals.atendidas)}
+              sub={formatPercent(pctAtendidas) + ' del total'}
+              icon={PhoneIncoming}
+              accent="#16a34a"
+              pct={pctAtendidas}
+            />
+            <KpiCard
+              label="No Atendidas"
+              value={formatNumber(totals.noAtendidas)}
+              sub={formatPercent(pctNoAtendidas) + ' del total'}
+              icon={PhoneOff}
+              accent="#dc2626"
+              pct={pctNoAtendidas}
+            />
+            <KpiCard
+              label="Nivel de Atención"
+              value={formatPercent(pctAtendidas)}
+              sub={`${monthly.length} meses registrados`}
+              icon={TrendingUp}
+              accent="#16468E"
+              pct={pctAtendidas}
+            />
           </div>
 
-          {/* Charts row 1 */}
+          {/* ── Charts fila 1 ── */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <Card>
               <CardHeader>
                 <CardTitle>Llamadas por Mes</CardTitle>
-                <span className="text-xs text-gray-400" data-tip="Comparativo mensual de llamadas atendidas vs no atendidas">Año {year}</span>
+                <span className="text-xs text-gray-400">Atendidas vs No atendidas · {year}</span>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={240}>
-                  <BarChart data={monthlyBarData} barSize={18}>
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={monthlyBarData} barSize={20} barGap={4}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                    <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,.12)', fontSize: 12 }} />
-                    <Legend iconType="circle" iconSize={8} />
+                    <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={40} />
+                    <Tooltip contentStyle={ttStyle} cursor={{ fill: '#f0f4f8' }} />
+                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
                     <Bar dataKey="Atendidas" fill="#0D2D6B" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="No Atendidas" fill="#dc2626" radius={[4, 4, 0, 0]} />
                   </BarChart>
@@ -146,16 +215,20 @@ export function Dashboard() {
                 <span className="text-xs text-gray-400">Tendencia del nivel de servicio</span>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={240}>
-                  <LineChart data={monthly.map(m => ({ mes: m.mes, '% Atendidas': m.pct_atendidas, '% No Atendidas': m.pct_no_atendidas, 'Nivel Servicio': m.nivel_atencion }))}>
+                <ResponsiveContainer width="100%" height={260}>
+                  <LineChart data={monthly.map(m => ({
+                    mes: m.mes,
+                    '% Atendidas': +m.pct_atendidas.toFixed(1),
+                    '% No Atendidas': +m.pct_no_atendidas.toFixed(1),
+                    'Nivel Servicio': +m.nivel_atencion.toFixed(1),
+                  }))}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                    <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} unit="%" domain={[0, 100]} />
-                    <Tooltip contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,.12)', fontSize: 12 }}
-                      formatter={(v: unknown) => `${(v as number)?.toFixed(2)}%`} />
-                    <Legend iconType="circle" iconSize={8} />
-                    <Line type="monotone" dataKey="% Atendidas" stroke="#16a34a" strokeWidth={2.5} dot={{ r: 3, fill: '#16a34a' }} activeDot={{ r: 5 }} />
-                    <Line type="monotone" dataKey="% No Atendidas" stroke="#dc2626" strokeWidth={2.5} dot={{ r: 3, fill: '#dc2626' }} activeDot={{ r: 5 }} />
+                    <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} unit="%" domain={[0, 100]} width={40} />
+                    <Tooltip contentStyle={ttStyle} formatter={(v: unknown) => `${v}%`} />
+                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
+                    <Line type="monotone" dataKey="% Atendidas" stroke="#16a34a" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="% No Atendidas" stroke="#dc2626" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
                     <Line type="monotone" dataKey="Nivel Servicio" stroke="#16468E" strokeWidth={2} strokeDasharray="5 3" dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
@@ -163,7 +236,7 @@ export function Dashboard() {
             </Card>
           </div>
 
-          {/* Charts row 2 */}
+          {/* ── Charts fila 2 ── */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <Card>
               <CardHeader>
@@ -171,42 +244,44 @@ export function Dashboard() {
                 <span className="text-xs text-gray-400">Últimos 30 días registrados</span>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={220}>
-                  <LineChart data={dailyTrend}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                    <XAxis dataKey="fecha" tick={{ fontSize: 10, fill: '#64748b' }} interval={4} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,.12)', fontSize: 12 }} />
-                    <Legend iconType="circle" iconSize={8} />
-                    <Line type="monotone" dataKey="Atendidas" stroke="#0D2D6B" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
-                    <Line type="monotone" dataKey="No Atendidas" stroke="#dc2626" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
-                  </LineChart>
-                </ResponsiveContainer>
+                {dailyTrend.length === 0 ? (
+                  <div className="flex items-center justify-center h-52 text-gray-400 text-sm">Sin registros diarios</div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={240}>
+                    <LineChart data={dailyTrend}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                      <XAxis dataKey="fecha" tick={{ fontSize: 10, fill: '#94a3b8' }} interval={4} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={40} />
+                      <Tooltip contentStyle={ttStyle} />
+                      <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
+                      <Line type="monotone" dataKey="Atendidas" stroke="#0D2D6B" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
+                      <Line type="monotone" dataKey="No Atendidas" stroke="#dc2626" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
                 <CardTitle>Distribución por Campaña</CardTitle>
-                <span className="text-xs text-gray-400">Top 8 campañas</span>
+                <span className="text-xs text-gray-400">Top 8 campañas · {year}</span>
               </CardHeader>
               <CardContent>
                 {campPieData.length === 0 ? (
-                  <div className="flex items-center justify-center h-[220px] text-gray-400 text-sm">
-                    Sin datos de campañas para {year}
-                  </div>
+                  <div className="flex items-center justify-center h-52 text-gray-400 text-sm">Sin datos de campañas</div>
                 ) : (
-                  <ResponsiveContainer width="100%" height={220}>
+                  <ResponsiveContainer width="100%" height={240}>
                     <PieChart>
-                      <Pie data={campPieData} cx="40%" cy="50%" outerRadius={85} innerRadius={35}
+                      <Pie data={campPieData} cx="38%" cy="50%" outerRadius={90} innerRadius={38}
                         dataKey="value" nameKey="name"
                         label={({ percent }: { percent?: number }) => `${((percent || 0) * 100).toFixed(0)}%`}
                         labelLine={false} fontSize={10}>
                         {campPieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                       </Pie>
-                      <Tooltip contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,.12)', fontSize: 12 }}
-                        formatter={(v: unknown) => formatNumber(v as number)} />
-                      <Legend layout="vertical" align="right" verticalAlign="middle" iconType="circle" iconSize={8} formatter={(v: string) => v.replace('CAC_SB_', '').replace(/_/g, ' ')} />
+                      <Tooltip contentStyle={ttStyle} formatter={(v: unknown) => formatNumber(v as number)} />
+                      <Legend layout="vertical" align="right" verticalAlign="middle" iconType="circle" iconSize={8}
+                        wrapperStyle={{ fontSize: 11 }} />
                     </PieChart>
                   </ResponsiveContainer>
                 )}
@@ -216,5 +291,39 @@ export function Dashboard() {
         </div>
       )}
     </Layout>
+  );
+}
+
+/* ── KPI Card profesional ── */
+function KpiCard({ label, value, sub, icon: Icon, accent, pct }: {
+  label: string; value: string; sub: string;
+  icon: React.ElementType; accent: string; pct: number;
+}) {
+  const bar = Math.min(Math.max(pct, 0), 100);
+  return (
+    <div className="bg-white rounded-2xl border border-[#e2e8f0] overflow-hidden"
+      style={{ boxShadow: '0 2px 8px rgba(13,45,107,0.08), 0 8px 24px rgba(13,45,107,0.06)' }}>
+      {/* Accent top bar */}
+      <div className="h-1 w-full" style={{ background: accent }} />
+      <div className="px-5 py-5">
+        {/* Icon + label */}
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-400">{label}</span>
+          <div className="p-2 rounded-xl" style={{ backgroundColor: `${accent}12` }}>
+            <Icon className="h-4 w-4" style={{ color: accent }} />
+          </div>
+        </div>
+        {/* Value */}
+        <p className="text-4xl font-extrabold tracking-tight leading-none" style={{ color: accent }}>
+          {value}
+        </p>
+        <p className="text-xs text-gray-400 mt-2">{sub}</p>
+        {/* Progress bar */}
+        <div className="mt-4 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-full rounded-full transition-all duration-700"
+            style={{ width: `${bar}%`, background: accent }} />
+        </div>
+      </div>
+    </div>
   );
 }
