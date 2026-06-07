@@ -114,15 +114,18 @@ export function Dashboard() {
                 Actualizado: {updated}
               </span>
             )}
-            <select
-              value={year ?? ''}
-              onChange={e => setYear(Number(e.target.value))}
-              className="text-sm border border-[#e2e8f0] rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#0D2D6B] font-medium text-[#0D2D6B]"
-            >
-              {(availYears.length > 0 ? availYears : allYears).map(y => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Año</span>
+              <select
+                value={year ?? ''}
+                onChange={e => setYear(Number(e.target.value))}
+                className="text-sm border border-[#e2e8f0] rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#0D2D6B] font-medium text-[#0D2D6B]"
+              >
+                {(availYears.length > 0 ? availYears : allYears).map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
             <button onClick={fetchData}
               className="p-2 rounded-lg border border-[#e2e8f0] bg-white text-gray-400 hover:text-[#0D2D6B] hover:border-[#0D2D6B] transition-colors"
               title="Recargar">
