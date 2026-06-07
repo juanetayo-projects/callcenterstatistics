@@ -1,73 +1,97 @@
-# React + TypeScript + Vite
+# Call Center Statistics — CAC Santa Bárbara
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación SaaS para visualizar y gestionar el comportamiento de atención de llamadas del Call Center.
 
-Currently, two official plugins are available:
+## URLs
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Aplicación:** https://juanetayo-projects.github.io/callcenterstatistics/
+- **Repositorio:** https://github.com/juanetayo-projects/callcenterstatistics
+- **Supabase:** https://supabase.com/dashboard/project/lsllalsrkwvypihhtopy
 
-## React Compiler
+## Stack Tecnológico
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Componente | Tecnología |
+|---|---|
+| Frontend | React 19 + Vite + TypeScript |
+| Estilos | Tailwind CSS v4 |
+| Gráficas | Recharts |
+| Base de datos | Supabase (PostgreSQL) |
+| Autenticación | Supabase Auth |
+| Exportación | xlsx + file-saver |
+| Deploy | GitHub Pages (Actions) |
 
-## Expanding the ESLint configuration
+## Módulos
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+| Ruta | Descripción |
+|---|---|
+| `/` | Dashboard con KPIs y 4 tipos de gráficas |
+| `/registro/diario` | Formulario ingreso diario |
+| `/registro/mensual` | Formulario ingreso mensual |
+| `/datos/diario` | CRUD registros diarios + filtros |
+| `/datos/mensual` | CRUD registros mensuales + filtros |
+| `/campanias` | CRUD campañas y registros por campaña |
+| `/reportes` | Exportar Excel con logo CAC |
+| `/usuarios` | CRUD usuarios y perfiles (solo Administrador) |
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Estructura del Código
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+callcenter/app/               ← CÓDIGO FUENTE AQUÍ
+├── .github/workflows/
+│   └── deploy.yml            # CI/CD GitHub Pages automático
+├── public/
+│   ├── logo_cacsb2.png
+│   ├── logo_cacsb_blanc.png
+│   └── 404.html
+├── src/
+│   ├── components/layout/    # Sidebar, Layout
+│   ├── components/ui/        # Button, Input, Card, Modal, Toast...
+│   ├── context/              # AuthContext
+│   ├── lib/                  # supabase, utils, exportExcel
+│   ├── pages/                # Login, Dashboard, DailyRecords, MonthlyRecords,
+│   │                         # Campaigns, Users, Reports
+│   ├── types/index.ts
+│   ├── App.tsx
+│   └── main.tsx
+├── .env                      # Variables locales (NO en git)
+├── .env.example              # Plantilla
+└── vite.config.ts
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Instalación Local
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cd "C:\Users\Juan Carlos Etayo\callcenter\app"
+npm install
+# Copiar .env.example a .env y completar credenciales
+npm run dev
 ```
+
+## Base de Datos Supabase
+
+| Tabla | Descripción |
+|---|---|
+| `profiles` | Administrador / Analista |
+| `app_users` | Usuarios vinculados a Auth |
+| `campaigns` | 13 campañas (CRUD) |
+| `daily_calls` | Registros diarios |
+| `monthly_calls` | Resúmenes mensuales |
+| `campaign_records` | Registros por campaña/mes |
+
+## Permisos
+
+| Acción | Administrador | Analista |
+|---|---|---|
+| Ver datos | ✅ | ✅ |
+| Crear/Editar | ✅ | ✅ |
+| Eliminar | ✅ | ❌ |
+| Gestionar usuarios | ✅ | ❌ |
+
+## Primer Usuario Administrador
+
+1. Supabase Dashboard > Authentication > Users > Add User
+2. Table Editor > app_users > cambiar `profile_id` a `1` (Administrador)
+
+## Deploy
+
+Push a `main` activa GitHub Actions automáticamente → GitHub Pages.
