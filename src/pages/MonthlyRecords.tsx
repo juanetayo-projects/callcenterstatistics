@@ -100,8 +100,14 @@ export function MonthlyRecords() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
               <input className="pl-8 pr-3 py-2 text-sm border border-[#e2e8f0] rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0D2D6B] focus:bg-white w-40" placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
-            <Select options={years.map(y => ({ value: y, label: String(y) }))} value={filterYear} onChange={e => setFilterYear(e.target.value)} placeholder="Año" className="w-28" />
-            <Select options={MESES.map((m, i) => ({ value: i + 1, label: m }))} value={filterMonth} onChange={e => setFilterMonth(e.target.value)} placeholder="Mes" className="w-28" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide whitespace-nowrap">Año</span>
+              <Select options={years.map(y => ({ value: y, label: String(y) }))} value={filterYear} onChange={e => setFilterYear(e.target.value)} placeholder="Todos" className="w-28" />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide whitespace-nowrap">Mes</span>
+              <Select options={MESES.map((m, i) => ({ value: i + 1, label: m }))} value={filterMonth} onChange={e => setFilterMonth(e.target.value)} placeholder="Todos" className="w-32" />
+            </div>
             {(filterYear || filterMonth || search) && <Button variant="ghost" size="sm" onClick={() => { setFilterYear(''); setFilterMonth(''); setSearch(''); }}>Limpiar</Button>}
             <span className="text-sm text-gray-500 ml-auto">{filtered.length} registros</span>
           </div>

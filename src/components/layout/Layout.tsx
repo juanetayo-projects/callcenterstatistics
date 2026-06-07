@@ -13,19 +13,23 @@ function NavDropdown({ label, icon: Icon, children }: { label: string; icon: any
   const [open, setOpen] = useState(false);
   return (
     <div className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
-      <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors">
+      <button className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${open ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'}`}>
         <Icon className="h-4 w-4" />
         {label}
-        <ChevronDown className={`h-3 w-3 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-[180px] z-50">
+        <div className="absolute top-full left-0 mt-2 bg-white rounded-xl border border-[#e2e8f0] py-1.5 min-w-[200px] z-50"
+          style={{ boxShadow: '0 8px 32px rgba(13,45,107,0.15), 0 2px 8px rgba(0,0,0,0.08)' }}>
+          <div className="px-3 pb-1.5 mb-1 border-b border-[#e2e8f0]">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#0D2D6B]/50">{label}</p>
+          </div>
           {children.map(c => (
             <NavLink
               key={c.to}
               to={c.to}
               className={({ isActive }) =>
-                `flex items-center px-4 py-2.5 text-sm transition-colors ${isActive ? 'bg-blue-50 text-[#0D2D6B] font-semibold' : 'text-gray-700 hover:bg-gray-50'}`
+                `flex items-center gap-2.5 mx-1.5 px-3 py-2 rounded-lg text-sm transition-colors ${isActive ? 'bg-[#0D2D6B] text-white font-semibold' : 'text-gray-700 hover:bg-[#0D2D6B]/8 hover:text-[#0D2D6B]'}`
               }
             >
               {c.label}
