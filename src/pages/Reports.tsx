@@ -114,11 +114,11 @@ export function Reports() {
           <Card key={r.id} className="hover:shadow-md transition-shadow">
             <CardContent className="py-6">
               <div className="flex flex-col items-start gap-4">
-                <div className="p-3 bg-[#1a5276]/10 rounded-lg">
-                  <r.icon className="h-6 w-6 text-[#1a5276]" />
+                <div className="p-3 bg-[#0D2D6B]/10 rounded-lg">
+                  <r.icon className="h-6 w-6 text-[#0D2D6B]" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-[#1a5276]">{r.title}</h3>
+                  <h3 className="font-semibold text-[#0D2D6B]">{r.title}</h3>
                   <p className="text-sm text-gray-500 mt-1">{r.description}</p>
                 </div>
                 <Button

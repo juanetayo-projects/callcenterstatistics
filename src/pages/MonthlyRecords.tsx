@@ -142,7 +142,7 @@ export function MonthlyRecords({ formOnly = false }: { formOnly?: boolean }) {
           <div className="flex flex-wrap gap-3 items-center">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-              <input className="pl-8 pr-3 py-2 text-sm border border-[#d5d8dc] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a5276] w-40" placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} />
+              <input className="pl-8 pr-3 py-2 text-sm border border-[#e2e8f0] rounded-md focus:outline-none focus:ring-2 focus:ring-[#0D2D6B] w-40" placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
             <Select options={years.map(y => ({ value: y, label: String(y) }))} value={filterYear} onChange={e => setFilterYear(e.target.value)} placeholder="Año" className="w-28" />
             <Select options={MESES.map((m, i) => ({ value: i + 1, label: m }))} value={filterMonth} onChange={e => setFilterMonth(e.target.value)} placeholder="Mes" className="w-28" />
@@ -156,7 +156,7 @@ export function MonthlyRecords({ formOnly = false }: { formOnly?: boolean }) {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#1a5276] text-white">
+              <tr className="bg-[#0D2D6B] text-white">
                 {['Año', 'Mes', 'Total', 'Entrantes', 'Atendidas', '% Atend.', 'No Atend.', '% No At.', 'Salientes', 'Válidas', 'Nivel At.', 'Obs.', ''].map(h => (
                   <th key={h} className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wide">{h}</th>
                 ))}
@@ -168,14 +168,14 @@ export function MonthlyRecords({ formOnly = false }: { formOnly?: boolean }) {
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={13} className="px-4 py-8 text-center text-gray-400">Sin registros</td></tr>
               ) : filtered.map((r, i) => (
-                <tr key={r.id} className={i % 2 === 0 ? 'bg-white' : 'bg-[#f4f6f9]'}>
+                <tr key={r.id} className={i % 2 === 0 ? 'bg-white' : 'bg-[#f0f4f8]'}>
                   <td className="px-3 py-2 font-medium">{r.anio}</td>
                   <td className="px-3 py-2 font-medium">{r.mes}</td>
                   <td className="px-3 py-2">{formatNumber(r.tot_llamadas)}</td>
                   <td className="px-3 py-2">{formatNumber(r.entrantes)}</td>
-                  <td className="px-3 py-2 text-[#27ae60] font-semibold">{formatNumber(r.atendidas)}</td>
+                  <td className="px-3 py-2 text-[#16a34a] font-semibold">{formatNumber(r.atendidas)}</td>
                   <td className="px-3 py-2">{formatPercent(r.pct_atendidas)}</td>
-                  <td className="px-3 py-2 text-[#e74c3c]">{formatNumber(r.no_atendidas)}</td>
+                  <td className="px-3 py-2 text-[#dc2626]">{formatNumber(r.no_atendidas)}</td>
                   <td className="px-3 py-2">{formatPercent(r.pct_no_atendidas)}</td>
                   <td className="px-3 py-2">{formatNumber(r.salientes)}</td>
                   <td className="px-3 py-2">{formatNumber(r.validas)}</td>
@@ -183,7 +183,7 @@ export function MonthlyRecords({ formOnly = false }: { formOnly?: boolean }) {
                   <td className="px-3 py-2 text-gray-500 max-w-[100px] truncate">{r.observaciones}</td>
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(r)} className="p-1 text-[#1a5276] hover:bg-blue-50 rounded"><Pencil className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => openEdit(r)} className="p-1 text-[#0D2D6B] hover:bg-blue-50 rounded"><Pencil className="h-3.5 w-3.5" /></button>
                       {isAdmin && <button onClick={() => handleDelete(r.id)} className="p-1 text-red-500 hover:bg-red-50 rounded"><Trash2 className="h-3.5 w-3.5" /></button>}
                     </div>
                   </td>

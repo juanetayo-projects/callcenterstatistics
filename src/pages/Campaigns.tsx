@@ -117,9 +117,9 @@ export function Campaigns() {
       />
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-4 border-b border-[#d5d8dc]">
+      <div className="flex gap-1 mb-4 border-b border-[#e2e8f0]">
         {(['campaigns', 'records'] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${tab === t ? 'border-[#1a5276] text-[#1a5276]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+          <button key={t} onClick={() => setTab(t)} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${tab === t ? 'border-[#0D2D6B] text-[#0D2D6B]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
             {t === 'campaigns' ? 'Campañas' : 'Registros por Campaña'}
           </button>
         ))}
@@ -131,7 +131,7 @@ export function Campaigns() {
           <div className="flex flex-wrap gap-3 items-center">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-              <input className="pl-8 pr-3 py-2 text-sm border border-[#d5d8dc] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a5276] w-48" placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} />
+              <input className="pl-8 pr-3 py-2 text-sm border border-[#e2e8f0] rounded-md focus:outline-none focus:ring-2 focus:ring-[#0D2D6B] w-48" placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
             {tab === 'records' && (
               <>
@@ -148,17 +148,17 @@ export function Campaigns() {
         <Card>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead><tr className="bg-[#1a5276] text-white">{['Nombre', 'Descripción', 'Estado', ''].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-medium uppercase">{h}</th>)}</tr></thead>
+              <thead><tr className="bg-[#0D2D6B] text-white">{['Nombre', 'Descripción', 'Estado', ''].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-medium uppercase">{h}</th>)}</tr></thead>
               <tbody>
                 {loading ? <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-400">Cargando...</td></tr>
                   : filteredCamps.map((c, i) => (
-                    <tr key={c.id} className={i % 2 === 0 ? 'bg-white' : 'bg-[#f4f6f9]'}>
+                    <tr key={c.id} className={i % 2 === 0 ? 'bg-white' : 'bg-[#f0f4f8]'}>
                       <td className="px-4 py-2 font-medium">{c.nombre}</td>
                       <td className="px-4 py-2 text-gray-500">{c.descripcion}</td>
                       <td className="px-4 py-2"><Badge variant={c.activa ? 'success' : 'neutral'}>{c.activa ? 'Activa' : 'Inactiva'}</Badge></td>
                       <td className="px-4 py-2">
                         <div className="flex gap-1">
-                          <button onClick={() => { setEditingCamp(c); setCampForm({ nombre: c.nombre, descripcion: c.descripcion || '', activa: c.activa }); setShowModal(true); }} className="p-1 text-[#1a5276] hover:bg-blue-50 rounded"><Pencil className="h-3.5 w-3.5" /></button>
+                          <button onClick={() => { setEditingCamp(c); setCampForm({ nombre: c.nombre, descripcion: c.descripcion || '', activa: c.activa }); setShowModal(true); }} className="p-1 text-[#0D2D6B] hover:bg-blue-50 rounded"><Pencil className="h-3.5 w-3.5" /></button>
                           {isAdmin && <button onClick={() => deleteCampaign(c.id)} className="p-1 text-red-500 hover:bg-red-50 rounded"><Trash2 className="h-3.5 w-3.5" /></button>}
                         </div>
                       </td>
@@ -172,19 +172,19 @@ export function Campaigns() {
         <Card>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead><tr className="bg-[#1a5276] text-white">{['Año', 'Mes', 'Campaña', 'Total Llamadas', ''].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-medium uppercase">{h}</th>)}</tr></thead>
+              <thead><tr className="bg-[#0D2D6B] text-white">{['Año', 'Mes', 'Campaña', 'Total Llamadas', ''].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-medium uppercase">{h}</th>)}</tr></thead>
               <tbody>
                 {loading ? <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">Cargando...</td></tr>
                   : filteredRecs.length === 0 ? <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">Sin registros</td></tr>
                   : filteredRecs.map((r, i) => (
-                    <tr key={r.id} className={i % 2 === 0 ? 'bg-white' : 'bg-[#f4f6f9]'}>
+                    <tr key={r.id} className={i % 2 === 0 ? 'bg-white' : 'bg-[#f0f4f8]'}>
                       <td className="px-4 py-2">{r.anio}</td>
                       <td className="px-4 py-2">{r.mes}</td>
                       <td className="px-4 py-2 font-medium">{r.campaign?.nombre}</td>
                       <td className="px-4 py-2">{formatNumber(r.total_llamadas)}</td>
                       <td className="px-4 py-2">
                         <div className="flex gap-1">
-                          <button onClick={() => { setEditingRec(r); setRecForm({ campaign_id: r.campaign_id, anio: r.anio, mes_numero: r.mes_numero, mes: r.mes, total_llamadas: r.total_llamadas }); setShowRecordModal(true); }} className="p-1 text-[#1a5276] hover:bg-blue-50 rounded"><Pencil className="h-3.5 w-3.5" /></button>
+                          <button onClick={() => { setEditingRec(r); setRecForm({ campaign_id: r.campaign_id, anio: r.anio, mes_numero: r.mes_numero, mes: r.mes, total_llamadas: r.total_llamadas }); setShowRecordModal(true); }} className="p-1 text-[#0D2D6B] hover:bg-blue-50 rounded"><Pencil className="h-3.5 w-3.5" /></button>
                           {isAdmin && <button onClick={() => deleteRecord(r.id)} className="p-1 text-red-500 hover:bg-red-50 rounded"><Trash2 className="h-3.5 w-3.5" /></button>}
                         </div>
                       </td>

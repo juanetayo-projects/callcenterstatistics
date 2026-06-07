@@ -98,7 +98,7 @@ export function Users() {
           <div className="flex flex-wrap gap-3 items-center">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-              <input className="pl-8 pr-3 py-2 text-sm border border-[#d5d8dc] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a5276] w-56" placeholder="Buscar por nombre o email..." value={search} onChange={e => setSearch(e.target.value)} />
+              <input className="pl-8 pr-3 py-2 text-sm border border-[#e2e8f0] rounded-md focus:outline-none focus:ring-2 focus:ring-[#0D2D6B] w-56" placeholder="Buscar por nombre o email..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
             <Button variant="outline" size="sm" onClick={() => { setResetEmail(''); setResetSent(false); setShowResetModal(true); }}>
               <Key className="h-4 w-4" /> Recuperar Contraseña
@@ -112,7 +112,7 @@ export function Users() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#1a5276] text-white">
+              <tr className="bg-[#0D2D6B] text-white">
                 {['Nombre', 'Email', 'Teléfono', 'Perfil', ''].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide">{h}</th>
                 ))}
@@ -122,7 +122,7 @@ export function Users() {
               {loading ? <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">Cargando...</td></tr>
                 : filtered.length === 0 ? <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">Sin usuarios</td></tr>
                 : filtered.map((u, i) => (
-                  <tr key={u.id} className={i % 2 === 0 ? 'bg-white' : 'bg-[#f4f6f9]'}>
+                  <tr key={u.id} className={i % 2 === 0 ? 'bg-white' : 'bg-[#f0f4f8]'}>
                     <td className="px-4 py-2 font-medium">{u.nombres}</td>
                     <td className="px-4 py-2 text-gray-500">{u.email}</td>
                     <td className="px-4 py-2">{u.telefono}</td>
@@ -133,7 +133,7 @@ export function Users() {
                     </td>
                     <td className="px-4 py-2">
                       <div className="flex gap-1">
-                        <button onClick={() => { setEditing(u); setForm({ nombres: u.nombres, email: u.email, telefono: u.telefono, password: '', profile_id: u.profile_id }); setShowModal(true); }} className="p-1 text-[#1a5276] hover:bg-blue-50 rounded"><Pencil className="h-3.5 w-3.5" /></button>
+                        <button onClick={() => { setEditing(u); setForm({ nombres: u.nombres, email: u.email, telefono: u.telefono, password: '', profile_id: u.profile_id }); setShowModal(true); }} className="p-1 text-[#0D2D6B] hover:bg-blue-50 rounded"><Pencil className="h-3.5 w-3.5" /></button>
                         <button onClick={() => handleDelete(u.id)} className="p-1 text-red-500 hover:bg-red-50 rounded"><Trash2 className="h-3.5 w-3.5" /></button>
                       </div>
                     </td>

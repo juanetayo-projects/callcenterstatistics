@@ -121,7 +121,7 @@ export function DailyRecords({ formOnly = false }: { formOnly?: boolean }) {
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
               <input
-                className="pl-8 pr-3 py-2 text-sm border border-[#d5d8dc] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a5276] w-48"
+                className="pl-8 pr-3 py-2 text-sm border border-[#e2e8f0] rounded-md focus:outline-none focus:ring-2 focus:ring-[#0D2D6B] w-48"
                 placeholder="Buscar..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
@@ -155,7 +155,7 @@ export function DailyRecords({ formOnly = false }: { formOnly?: boolean }) {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#1a5276] text-white">
+              <tr className="bg-[#0D2D6B] text-white">
                 {['Fecha', 'Atendidas', 'Expiradas', 'Abandonadas', 'Ab. Anuncio', 'Transferidas', 'Transf. No At.', 'Total', 'No Atend.', 'Obs.', ''].map(h => (
                   <th key={h} className="px-4 py-3 text-left font-medium text-xs uppercase tracking-wide">{h}</th>
                 ))}
@@ -167,20 +167,20 @@ export function DailyRecords({ formOnly = false }: { formOnly?: boolean }) {
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={11} className="px-4 py-8 text-center text-gray-400">Sin registros</td></tr>
               ) : filtered.map((r, i) => (
-                <tr key={r.id} className={i % 2 === 0 ? 'bg-white' : 'bg-[#f4f6f9]'}>
+                <tr key={r.id} className={i % 2 === 0 ? 'bg-white' : 'bg-[#f0f4f8]'}>
                   <td className="px-4 py-2 font-medium">{r.fecha}</td>
-                  <td className="px-4 py-2 text-[#27ae60] font-semibold">{formatNumber(r.atendidas)}</td>
+                  <td className="px-4 py-2 text-[#16a34a] font-semibold">{formatNumber(r.atendidas)}</td>
                   <td className="px-4 py-2">{formatNumber(r.expiradas)}</td>
-                  <td className="px-4 py-2 text-[#e74c3c]">{formatNumber(r.abandonadas)}</td>
+                  <td className="px-4 py-2 text-[#dc2626]">{formatNumber(r.abandonadas)}</td>
                   <td className="px-4 py-2">{formatNumber(r.ab_durante_anuncio)}</td>
                   <td className="px-4 py-2">{formatNumber(r.transferidas)}</td>
                   <td className="px-4 py-2">{formatNumber(r.transf_no_atendidas)}</td>
                   <td className="px-4 py-2 font-semibold">{formatNumber(r.total)}</td>
-                  <td className="px-4 py-2 text-[#e74c3c]">{formatNumber(r.no_atendidas)}</td>
+                  <td className="px-4 py-2 text-[#dc2626]">{formatNumber(r.no_atendidas)}</td>
                   <td className="px-4 py-2 text-gray-500 max-w-[120px] truncate" title={r.observaciones || ''}>{r.observaciones}</td>
                   <td className="px-4 py-2">
                     <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(r)} className="p-1 text-[#1a5276] hover:bg-blue-50 rounded">
+                      <button onClick={() => openEdit(r)} className="p-1 text-[#0D2D6B] hover:bg-blue-50 rounded">
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
                       {isAdmin && (
