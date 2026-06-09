@@ -189,7 +189,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </header>
 
       {/* Page content */}
-      <main className="flex-1 px-8 py-6 max-w-7xl mx-auto w-full">
+      <main className="flex-1 py-6 w-full" style={{ maxWidth: '1100px', margin: '0 auto', paddingLeft: '40px', paddingRight: '40px' }}>
         {children}
       </main>
     </div>
