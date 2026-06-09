@@ -38,10 +38,14 @@ export function DailyRecords() {
   async function fetchRecords() {
     setLoading(true);
     let q = supabase.from('daily_calls').select('*').order('fecha', { ascending: false });
-    if (filterYear) q = q.gte('fecha', `${filterYear}-01-01`).lte('fecha', `${filterYear}-12-31`);
-    if (filterMonth && filterYear) {
-      const m = filterMonth.padStart(2, '0');
-      q = q.gte('fecha', `${filterYear}-${m}-01`).lte('fecha', `${filterYear}-${m}-31`);
+    if (filterYear && !filterMonth) {
+      q = q.gte('fecha', `${filterYear}-01-01`).lte('fecha', `${filterYear}-12-31`);
+    } else if (filterYear && filterMonth) {
+      const y = Number(filterYear);
+      const m = Number(filterMonth);
+      const lastDay = new Date(y, m, 0).getDate(); // día real del mes
+      const mm = String(m).padStart(2, '0');
+      q = q.gte('fecha', `${y}-${mm}-01`).lte('fecha', `${y}-${mm}-${lastDay}`);
     }
     const { data } = await q;
     setRecords(data || []);
