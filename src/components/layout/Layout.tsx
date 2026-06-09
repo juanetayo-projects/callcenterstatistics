@@ -299,16 +299,30 @@ export function Layout({ children }: { children: ReactNode }) {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', backgroundColor: '#f0f4f8' }}>
+      <style>{`
+        @media (min-width: 768px) {
+          .sidebar-desktop { display: flex !important; }
+          .mobile-topbar   { display: none !important; }
+          .main-content    { margin-top: 0 !important; }
+        }
+        @media (max-width: 767px) {
+          .sidebar-desktop { display: none !important; }
+          .mobile-topbar   { display: flex !important; }
+          .main-content    { margin-top: 52px !important; }
+        }
+      `}</style>
+
       {/* Sidebar desktop */}
-      <div className="hidden md:flex" style={{ flexShrink: 0 }}>
+      <div className="sidebar-desktop" style={{ display: 'none', flexShrink: 0 }}>
         {sidebarContent}
       </div>
 
       {/* Mobile: hamburger top bar */}
-      <div className="md:hidden" style={{
+      <div className="mobile-topbar" style={{
+        display: 'none',
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 40,
         background: 'linear-gradient(135deg, #0D2D6B 0%, #16468E 100%)',
-        display: 'flex', alignItems: 'center', height: '52px', padding: '0 12px', gap: '10px',
+        alignItems: 'center', height: '52px', padding: '0 12px', gap: '10px',
         boxShadow: '0 2px 12px rgba(13,45,107,0.25)',
       }}>
         <button
@@ -337,7 +351,7 @@ export function Layout({ children }: { children: ReactNode }) {
       {/* Main content */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <main
-          className="md:mt-0 mt-[52px]"
+          className="main-content"
           style={{ flex: 1, padding: '28px 36px', maxWidth: '1060px', width: '100%' }}
         >
           {children}
