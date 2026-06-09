@@ -9,35 +9,53 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, hint, icon, className, ...props }, ref) => (
-    <div className="flex flex-col gap-1.5">
+  ({ label, error, hint, icon, className, style, ...props }, ref) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
       {label && (
-        <label className="text-[13px] font-semibold text-[#4a5568]">
+        <label style={{ fontSize: '13px', fontWeight: '600', color: '#4a5568', letterSpacing: '0.01em' }}>
           {label}
         </label>
       )}
-      <div className="relative">
+      <div style={{ position: 'relative' }}>
         {icon && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+          <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', display: 'flex' }}>
             {icon}
           </span>
         )}
         <input
           ref={ref}
-          className={cn(
-            'w-full rounded-lg bg-[#f8fafc] px-3 py-[10px] text-sm text-[#2d3748]',
-            'border-[1.5px] border-[#e2e8f0]',
-            'placeholder:text-gray-400 focus:outline-none focus:border-[#0D2D6B] focus:ring-2 focus:ring-[#0D2D6B]/20 focus:bg-white',
-            'disabled:bg-gray-100 disabled:cursor-not-allowed transition-all',
-            !!icon && 'pl-9',
-            error && 'border-red-400 focus:ring-red-400/20 focus:border-red-400',
-            className,
-          )}
+          className={cn(className)}
+          style={{
+            width: '100%',
+            paddingTop: '10px',
+            paddingBottom: '10px',
+            paddingLeft: icon ? '40px' : '12px',
+            paddingRight: '12px',
+            borderRadius: '8px',
+            border: error ? '1.5px solid #f87171' : '1.5px solid #e2e8f0',
+            fontSize: '14px',
+            color: '#2d3748',
+            outline: 'none',
+            backgroundColor: '#f8fafc',
+            boxSizing: 'border-box',
+            transition: 'border-color 0.15s, box-shadow 0.15s',
+            ...style,
+          }}
+          onFocus={e => {
+            e.target.style.borderColor = '#0D2D6B';
+            e.target.style.boxShadow = '0 0 0 3px rgba(13,45,107,0.12)';
+            e.target.style.backgroundColor = '#fff';
+          }}
+          onBlur={e => {
+            e.target.style.borderColor = error ? '#f87171' : '#e2e8f0';
+            e.target.style.boxShadow = 'none';
+            e.target.style.backgroundColor = '#f8fafc';
+          }}
           {...props}
         />
       </div>
-      {hint && !error && <p className="text-[11px] text-gray-400">{hint}</p>}
-      {error && <p className="text-[11px] text-red-500 font-medium">{error}</p>}
+      {hint && !error && <p style={{ fontSize: '11px', color: '#94a3b8', margin: 0 }}>{hint}</p>}
+      {error && <p style={{ fontSize: '11px', color: '#ef4444', margin: 0, fontWeight: '500' }}>{error}</p>}
     </div>
   )
 );
