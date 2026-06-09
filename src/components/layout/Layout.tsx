@@ -189,7 +189,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </header>
 
       {/* Page content */}
-      <main className="flex-1 px-8 py-6 max-w-screen-2xl mx-auto w-full">
+      <main className="flex-1 px-8 py-6 max-w-7xl mx-auto w-full">
         {children}
       </main>
     </div>

@@ -21,26 +21,26 @@ export function Modal({ open, onClose, title, subtitle, children, footer, size =
       <div className={`relative bg-white rounded-2xl shadow-2xl w-full mx-auto ${sizes[size]} max-h-[90vh] flex flex-col`}
         style={{ boxShadow: '0 25px 60px rgba(13,45,107,0.25)' }}>
 
-        {/* Header */}
-        <div className="flex items-start justify-between px-6 py-4 flex-shrink-0"
+        {/* Header azul (igual que login) */}
+        <div className="flex-shrink-0 px-7 py-5 flex items-center justify-between"
           style={{ background: 'linear-gradient(135deg, #0D2D6B 0%, #16468E 100%)', borderRadius: '16px 16px 0 0' }}>
           <div>
-            <h2 className="text-base font-bold text-white">{title}</h2>
+            <h2 className="text-[17px] font-bold text-white tracking-tight">{title}</h2>
             {subtitle && <p className="text-xs text-white/60 mt-0.5">{subtitle}</p>}
           </div>
-          <button onClick={onClose} className="text-white/70 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-lg">
+          <button onClick={onClose} className="text-white/70 hover:text-white transition-colors p-1.5 hover:bg-white/10 rounded-lg ml-4">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto flex-1 px-6 py-5">
+        <div className="overflow-y-auto flex-1 px-7 py-6">
           {children}
         </div>
 
         {/* Footer */}
         {footer && (
-          <div className="flex justify-end gap-3 px-6 py-4 border-t border-[#e2e8f0] flex-shrink-0 bg-gray-50 rounded-b-2xl">
+          <div className="flex justify-end gap-3 px-7 py-4 border-t border-[#e2e8f0] flex-shrink-0 bg-[#f8fafc] rounded-b-2xl">
             {footer}
           </div>
         )}
@@ -52,12 +52,12 @@ export function Modal({ open, onClose, title, subtitle, children, footer, size =
 /** Divisor de sección dentro de formularios */
 export function FormSection({ icon: Icon, label }: { icon: any; label: string }) {
   return (
-    <div className="flex items-center gap-2 pt-1">
-      <div className="p-1.5 bg-[#0D2D6B]/10 rounded-lg">
-        <Icon className="h-3.5 w-3.5 text-[#0D2D6B]" />
+    <div className="flex items-center gap-2 mb-1">
+      <div className="p-1.5 rounded-lg" style={{ background: 'linear-gradient(135deg,#0D2D6B,#16468E)' }}>
+        <Icon className="h-3.5 w-3.5 text-white" />
       </div>
-      <span className="text-xs font-bold text-[#0D2D6B] uppercase tracking-widest">{label}</span>
-      <div className="flex-1 h-px bg-[#0D2D6B]/10" />
+      <span className="text-[11px] font-bold text-[#0D2D6B] uppercase tracking-widest">{label}</span>
+      <div className="flex-1 h-px bg-[#0D2D6B]/12" />
     </div>
   );
 }
