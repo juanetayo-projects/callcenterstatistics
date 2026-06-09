@@ -9,28 +9,60 @@ import { useAuth } from '../../context/AuthContext';
 
 const BASE = '/callcenterstatistics';
 
-function NavDropdown({ label, icon: Icon, children }: { label: string; icon: any; children: { to: string; label: string }[] }) {
-  const [open, setOpen] = useState(false);
+/** Grupo desplegable en el sidebar */
+function SideGroup({ label, icon: Icon, children }: { label: string; icon: any; children: { to: string; label: string }[] }) {
+  const [open, setOpen] = useState(true);
   return (
-    <div className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
-      <button className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${open ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'}`}>
-        <Icon className="h-4 w-4" />
-        {label}
-        <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+    <div>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '8px',
+          width: '100%', padding: '8px 12px', borderRadius: '8px',
+          background: 'none', border: 'none', cursor: 'pointer',
+          color: 'rgba(255,255,255,0.65)', fontSize: '12px', fontWeight: '600',
+          textTransform: 'uppercase', letterSpacing: '0.07em',
+          transition: 'color 0.15s',
+        }}
+        onMouseEnter={e => (e.currentTarget.style.color = 'white')}
+        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.65)')}
+      >
+        <Icon style={{ width: '14px', height: '14px', flexShrink: 0 }} />
+        <span style={{ flex: 1, textAlign: 'left' }}>{label}</span>
+        <ChevronDown style={{
+          width: '12px', height: '12px', flexShrink: 0,
+          transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+          transition: 'transform 0.2s',
+        }} />
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-2 bg-white rounded-xl border border-[#e2e8f0] py-1.5 min-w-[200px] z-50"
-          style={{ boxShadow: '0 8px 32px rgba(13,45,107,0.15), 0 2px 8px rgba(0,0,0,0.08)' }}>
-          <div className="px-3 pb-1.5 mb-1 border-b border-[#e2e8f0]">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#0D2D6B]/50">{label}</p>
-          </div>
+        <div style={{ paddingLeft: '12px', display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '2px' }}>
           {children.map(c => (
             <NavLink
               key={c.to}
               to={c.to}
-              className={({ isActive }) =>
-                `flex items-center gap-2.5 mx-1.5 px-3 py-2 rounded-lg text-sm transition-colors ${isActive ? 'bg-[#0D2D6B] text-white font-semibold' : 'text-gray-700 hover:bg-[#0D2D6B]/8 hover:text-[#0D2D6B]'}`
-              }
+              style={({ isActive }) => ({
+                display: 'block', padding: '7px 12px', borderRadius: '7px',
+                fontSize: '13px', fontWeight: isActive ? '600' : '400',
+                color: isActive ? 'white' : 'rgba(255,255,255,0.6)',
+                backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
+                textDecoration: 'none', transition: 'all 0.15s',
+                borderLeft: isActive ? '3px solid rgba(255,255,255,0.7)' : '3px solid transparent',
+              })}
+              onMouseEnter={e => {
+                const el = e.currentTarget as HTMLElement;
+                if (!el.style.borderLeft.includes('0.7')) {
+                  el.style.backgroundColor = 'rgba(255,255,255,0.08)';
+                  el.style.color = 'white';
+                }
+              }}
+              onMouseLeave={e => {
+                const el = e.currentTarget as HTMLElement;
+                if (!el.style.borderLeft.includes('0.7')) {
+                  el.style.backgroundColor = 'transparent';
+                  el.style.color = 'rgba(255,255,255,0.6)';
+                }
+              }}
             >
               {c.label}
             </NavLink>
@@ -43,155 +75,274 @@ function NavDropdown({ label, icon: Icon, children }: { label: string; icon: any
 
 export function Layout({ children }: { children: ReactNode }) {
   const { appUser, isAdmin, signOut } = useAuth();
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const initials = appUser?.nombres
     ? appUser.nombres.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
     : 'U';
 
-  return (
-    <div className="min-h-screen flex flex-col bg-[#f0f4f8]">
-      {/* Top Navbar */}
-      <header style={{ background: 'linear-gradient(135deg, #0D2D6B 0%, #16468E 100%)' }}
-        className="sticky top-0 z-40 shadow-lg">
-        <div className="flex items-center h-14 px-4 gap-4">
-          {/* Logo */}
-          <NavLink to={`${BASE}/`} className="flex items-center gap-2 shrink-0">
-            <img src="/callcenterstatistics/logo_cacsb_blanc.png" alt="CAC" className="h-8 object-contain" />
-            <div className="hidden sm:block">
-              <p className="text-white text-xs font-bold leading-tight">Call Center Statistics</p>
-              <p className="text-white/50 text-[10px] leading-tight">Rondas de Humanización · Supabase</p>
-            </div>
+  const sidebarContent = (
+    <div style={{
+      width: '220px', minHeight: '100vh', flexShrink: 0,
+      background: 'linear-gradient(180deg, #0D2D6B 0%, #112e6e 60%, #0a2254 100%)',
+      display: 'flex', flexDirection: 'column',
+      boxShadow: '4px 0 24px rgba(13,45,107,0.18)',
+    }}>
+      {/* Logo / Brand */}
+      <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+        <NavLink to={`${BASE}/`} style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+          <img src="/callcenterstatistics/logo_cacsb_blanc.png" alt="CAC" style={{ height: '38px', objectFit: 'contain' }} />
+          <div>
+            <p style={{ color: 'white', fontSize: '12px', fontWeight: '700', margin: 0, lineHeight: 1.3 }}>Call Center</p>
+            <p style={{ color: 'white', fontSize: '12px', fontWeight: '700', margin: 0, lineHeight: 1.3 }}>Statistics</p>
+            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '9px', margin: '2px 0 0', lineHeight: 1 }}>Rondas de Humanización</p>
+          </div>
+        </NavLink>
+      </div>
+
+      {/* Nav items */}
+      <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto' }}>
+        {/* Dashboard */}
+        <NavLink
+          to={`${BASE}/`}
+          end
+          style={({ isActive }) => ({
+            display: 'flex', alignItems: 'center', gap: '9px',
+            padding: '9px 12px', borderRadius: '8px',
+            fontSize: '13px', fontWeight: isActive ? '700' : '500',
+            color: isActive ? 'white' : 'rgba(255,255,255,0.7)',
+            backgroundColor: isActive ? 'rgba(255,255,255,0.18)' : 'transparent',
+            textDecoration: 'none', transition: 'all 0.15s',
+          })}
+          onMouseEnter={e => {
+            const el = e.currentTarget as HTMLElement;
+            if (el.style.backgroundColor === 'transparent') {
+              el.style.backgroundColor = 'rgba(255,255,255,0.08)';
+              el.style.color = 'white';
+            }
+          }}
+          onMouseLeave={e => {
+            const el = e.currentTarget as HTMLElement;
+            if (!el.style.fontWeight.includes('700')) {
+              el.style.backgroundColor = 'transparent';
+              el.style.color = 'rgba(255,255,255,0.7)';
+            }
+          }}
+        >
+          <LayoutDashboard style={{ width: '15px', height: '15px', flexShrink: 0 }} />
+          Dashboard
+        </NavLink>
+
+        {/* Separator */}
+        <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '6px 4px' }} />
+
+        <SideGroup label="Registros" icon={CalendarDays} children={[
+          { to: `${BASE}/registro/diario`, label: 'Registro Diario' },
+          { to: `${BASE}/registro/mensual`, label: 'Registro Mensual' },
+        ]} />
+
+        <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '4px 4px' }} />
+
+        <SideGroup label="Datos" icon={CalendarRange} children={[
+          { to: `${BASE}/datos/diario`, label: 'Datos Diarios' },
+          { to: `${BASE}/datos/mensual`, label: 'Datos Mensuales' },
+        ]} />
+
+        <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '4px 4px' }} />
+
+        {/* Campañas */}
+        <NavLink
+          to={`${BASE}/campanias`}
+          style={({ isActive }) => ({
+            display: 'flex', alignItems: 'center', gap: '9px',
+            padding: '9px 12px', borderRadius: '8px',
+            fontSize: '13px', fontWeight: isActive ? '700' : '500',
+            color: isActive ? 'white' : 'rgba(255,255,255,0.7)',
+            backgroundColor: isActive ? 'rgba(255,255,255,0.18)' : 'transparent',
+            textDecoration: 'none', transition: 'all 0.15s',
+          })}
+          onMouseEnter={e => {
+            const el = e.currentTarget as HTMLElement;
+            if (el.style.backgroundColor === 'transparent') {
+              el.style.backgroundColor = 'rgba(255,255,255,0.08)';
+              el.style.color = 'white';
+            }
+          }}
+          onMouseLeave={e => {
+            const el = e.currentTarget as HTMLElement;
+            if (!el.style.fontWeight.includes('700')) {
+              el.style.backgroundColor = 'transparent';
+              el.style.color = 'rgba(255,255,255,0.7)';
+            }
+          }}
+        >
+          <Megaphone style={{ width: '15px', height: '15px', flexShrink: 0 }} />
+          Campañas
+        </NavLink>
+
+        {/* Reportes */}
+        <NavLink
+          to={`${BASE}/reportes`}
+          style={({ isActive }) => ({
+            display: 'flex', alignItems: 'center', gap: '9px',
+            padding: '9px 12px', borderRadius: '8px',
+            fontSize: '13px', fontWeight: isActive ? '700' : '500',
+            color: isActive ? 'white' : 'rgba(255,255,255,0.7)',
+            backgroundColor: isActive ? 'rgba(255,255,255,0.18)' : 'transparent',
+            textDecoration: 'none', transition: 'all 0.15s',
+          })}
+          onMouseEnter={e => {
+            const el = e.currentTarget as HTMLElement;
+            if (el.style.backgroundColor === 'transparent') {
+              el.style.backgroundColor = 'rgba(255,255,255,0.08)';
+              el.style.color = 'white';
+            }
+          }}
+          onMouseLeave={e => {
+            const el = e.currentTarget as HTMLElement;
+            if (!el.style.fontWeight.includes('700')) {
+              el.style.backgroundColor = 'transparent';
+              el.style.color = 'rgba(255,255,255,0.7)';
+            }
+          }}
+        >
+          <FileText style={{ width: '15px', height: '15px', flexShrink: 0 }} />
+          Reportes
+        </NavLink>
+
+        {/* Usuarios (admin only) */}
+        {isAdmin && (
+          <NavLink
+            to={`${BASE}/usuarios`}
+            style={({ isActive }) => ({
+              display: 'flex', alignItems: 'center', gap: '9px',
+              padding: '9px 12px', borderRadius: '8px',
+              fontSize: '13px', fontWeight: isActive ? '700' : '500',
+              color: isActive ? 'white' : 'rgba(255,255,255,0.7)',
+              backgroundColor: isActive ? 'rgba(255,255,255,0.18)' : 'transparent',
+              textDecoration: 'none', transition: 'all 0.15s',
+            })}
+            onMouseEnter={e => {
+              const el = e.currentTarget as HTMLElement;
+              if (el.style.backgroundColor === 'transparent') {
+                el.style.backgroundColor = 'rgba(255,255,255,0.08)';
+                el.style.color = 'white';
+              }
+            }}
+            onMouseLeave={e => {
+              const el = e.currentTarget as HTMLElement;
+              if (!el.style.fontWeight.includes('700')) {
+                el.style.backgroundColor = 'transparent';
+                el.style.color = 'rgba(255,255,255,0.7)';
+              }
+            }}
+          >
+            <Users style={{ width: '15px', height: '15px', flexShrink: 0 }} />
+            Usuarios
           </NavLink>
+        )}
+      </nav>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1 flex-1 ml-4">
-            <NavLink to={`${BASE}/`} end className={({ isActive }) =>
-              `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'}`
-            }>
-              <LayoutDashboard className="h-4 w-4" /> Dashboard
-            </NavLink>
-
-            <NavDropdown label="Registros" icon={CalendarDays} children={[
-              { to: `${BASE}/registro/diario`, label: 'Registro Diario' },
-              { to: `${BASE}/registro/mensual`, label: 'Registro Mensual' },
-            ]} />
-
-            <NavDropdown label="Datos" icon={CalendarRange} children={[
-              { to: `${BASE}/datos/diario`, label: 'Datos Diarios' },
-              { to: `${BASE}/datos/mensual`, label: 'Datos Mensuales' },
-            ]} />
-
-            <NavLink to={`${BASE}/campanias`} className={({ isActive }) =>
-              `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'}`
-            }>
-              <Megaphone className="h-4 w-4" /> Campañas
-            </NavLink>
-
-            <NavLink to={`${BASE}/reportes`} className={({ isActive }) =>
-              `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'}`
-            }>
-              <FileText className="h-4 w-4" /> Reportes
-            </NavLink>
-
-            {isAdmin && (
-              <NavLink to={`${BASE}/usuarios`} className={({ isActive }) =>
-                `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'}`
-              }>
-                <Users className="h-4 w-4" /> Usuarios
-              </NavLink>
-            )}
-          </nav>
-
-          {/* Right side */}
-          <div className="flex items-center gap-2 ml-auto">
-            <button
-              data-tip="Recargar página"
-              onClick={() => window.location.reload()}
-              className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors hidden sm:flex"
-            >
-              <RefreshCw className="h-4 w-4" />
-            </button>
-
-            {/* User menu */}
-            <div className="relative">
-              <button
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
-              >
-                <div className="h-8 w-8 rounded-lg bg-white/20 flex items-center justify-center text-white text-xs font-bold">
-                  {initials}
-                </div>
-                <div className="hidden sm:block text-left">
-                  <p className="text-white text-xs font-semibold leading-tight">{appUser?.nombres || 'Usuario'}</p>
-                  <p className="text-white/60 text-[10px]">{appUser?.profile?.perfil}</p>
-                </div>
-                <ChevronDown className="h-3 w-3 text-white/60 hidden sm:block" />
-              </button>
-
-              {userMenuOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                  <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-[180px] z-50">
-                    <div className="px-4 py-2.5 border-b border-gray-100">
-                      <p className="text-sm font-semibold text-gray-800">{appUser?.nombres}</p>
-                      <p className="text-xs text-gray-500">{appUser?.email}</p>
-                    </div>
-                    <button
-                      onClick={() => { setUserMenuOpen(false); signOut(); }}
-                      className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                      <LogOut className="h-4 w-4" /> Cerrar sesión
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Mobile toggle */}
-            <button
-              className="md:hidden p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg"
-              onClick={() => setMobileOpen(!mobileOpen)}
-            >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
+      {/* User footer */}
+      <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', padding: '12px 10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+          <div style={{
+            width: '34px', height: '34px', borderRadius: '8px',
+            background: 'rgba(255,255,255,0.15)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+            color: 'white', fontSize: '12px', fontWeight: '700', flexShrink: 0,
+          }}>
+            {initials}
+          </div>
+          <div style={{ overflow: 'hidden' }}>
+            <p style={{ color: 'white', fontSize: '12px', fontWeight: '600', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {appUser?.nombres || 'Usuario'}
+            </p>
+            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '10px', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {appUser?.profile?.perfil}
+            </p>
           </div>
         </div>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+              padding: '7px', borderRadius: '7px', background: 'rgba(255,255,255,0.08)',
+              border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.6)',
+              fontSize: '11px', transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = 'white'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}
+          >
+            <RefreshCw style={{ width: '12px', height: '12px' }} />
+            Recargar
+          </button>
+          <button
+            onClick={signOut}
+            style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+              padding: '7px', borderRadius: '7px', background: 'rgba(239,68,68,0.15)',
+              border: 'none', cursor: 'pointer', color: 'rgba(252,165,165,0.9)',
+              fontSize: '11px', transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.3)'; e.currentTarget.style.color = 'white'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.15)'; e.currentTarget.style.color = 'rgba(252,165,165,0.9)'; }}
+          >
+            <LogOut style={{ width: '12px', height: '12px' }} />
+            Salir
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
-        {/* Mobile nav */}
-        {mobileOpen && (
-          <div className="md:hidden border-t border-white/10 px-4 py-3 flex flex-col gap-1">
-            {[
-              { to: `${BASE}/`, label: 'Dashboard', end: true },
-              { to: `${BASE}/registro/diario`, label: 'Registro Diario' },
-              { to: `${BASE}/registro/mensual`, label: 'Registro Mensual' },
-              { to: `${BASE}/datos/diario`, label: 'Datos Diarios' },
-              { to: `${BASE}/datos/mensual`, label: 'Datos Mensuales' },
-              { to: `${BASE}/campanias`, label: 'Campañas' },
-              { to: `${BASE}/reportes`, label: 'Reportes' },
-              ...(isAdmin ? [{ to: `${BASE}/usuarios`, label: 'Usuarios' }] : []),
-            ].map(item => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                onClick={() => setMobileOpen(false)}
-                className={({ isActive }) =>
-                  `px-3 py-2 rounded-lg text-sm font-medium ${isActive ? 'bg-white/20 text-white' : 'text-white/80'}`
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))}
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', backgroundColor: '#f0f4f8' }}>
+      {/* Sidebar desktop */}
+      <div className="hidden md:flex" style={{ flexShrink: 0 }}>
+        {sidebarContent}
+      </div>
+
+      {/* Mobile: hamburger top bar */}
+      <div className="md:hidden" style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 40,
+        background: 'linear-gradient(135deg, #0D2D6B 0%, #16468E 100%)',
+        display: 'flex', alignItems: 'center', height: '52px', padding: '0 12px', gap: '10px',
+        boxShadow: '0 2px 12px rgba(13,45,107,0.25)',
+      }}>
+        <button
+          onClick={() => setMobileOpen(!mobileOpen)}
+          style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '7px', padding: '7px', color: 'white', cursor: 'pointer', display: 'flex' }}
+        >
+          {mobileOpen ? <X style={{ width: '18px', height: '18px' }} /> : <Menu style={{ width: '18px', height: '18px' }} />}
+        </button>
+        <img src="/callcenterstatistics/logo_cacsb_blanc.png" alt="CAC" style={{ height: '28px', objectFit: 'contain' }} />
+        <span style={{ color: 'white', fontSize: '13px', fontWeight: '700' }}>Call Center Statistics</span>
+      </div>
+
+      {/* Mobile sidebar overlay */}
+      {mobileOpen && (
+        <>
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 45, backgroundColor: 'rgba(0,0,0,0.5)' }}
+            onClick={() => setMobileOpen(false)}
+          />
+          <div style={{ position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 50 }} onClick={() => setMobileOpen(false)}>
+            {sidebarContent}
           </div>
-        )}
-      </header>
+        </>
+      )}
 
-      {/* Page content */}
-      <main className="flex-1 py-6 w-full" style={{ maxWidth: '1100px', margin: '0 auto', paddingLeft: '40px', paddingRight: '40px' }}>
-        {children}
-      </main>
+      {/* Main content */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <main
+          className="md:mt-0 mt-[52px]"
+          style={{ flex: 1, padding: '28px 36px', maxWidth: '1060px', width: '100%' }}
+        >
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
